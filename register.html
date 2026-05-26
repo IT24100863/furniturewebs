@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title data-i18n="auth.register.title">Register - Anura Furnitures</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .auth-container {
+            max-width: 420px;
+            margin: 80px auto;
+            padding: 40px 32px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 32px;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #444;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #e67e22;
+            box-shadow: 0 0 0 3px rgba(230,126,34,0.15);
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background: #1a252f;
+        }
+        .link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.95rem;
+        }
+        .link a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .link a:hover {
+            text-decoration: underline;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 12px;
+        }
+        .success {
+            color: #27ae60;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="container" style="display:flex; justify-content:space-between; align-items:center; padding:16px 40px;">
+        <div class="logo" data-i18n="logo">Anura Furnitures</div>
+        <div id="auth-section">
+            <a href="/login.html" data-i18n="nav.login">Login</a> |
+            <a href="/register.html" data-i18n="nav.register">Register</a>
+        </div>
+    </div>
+</nav>
+
+<div class="auth-container">
+    <h2 data-i18n="auth.register.title">Create Account</h2>
+
+    <div class="form-group">
+        <label for="firstName" data-i18n="auth.firstname">First Name *</label>
+        <input type="text" id="firstName" placeholder="Enter your first name" required>
+    </div>
+
+    <div class="form-group">
+        <label for="lastName" data-i18n="auth.lastname">Last Name</label>
+        <input type="text" id="lastName" placeholder="Enter your last name">
+    </div>
+
+    <div class="form-group">
+        <label for="email" data-i18n="auth.email">Email Address *</label>
+        <input type="email" id="email" placeholder="your@email.com" required data-i18n-placeholder="auth.email">
+    </div>
+
+    <div class="form-group">
+        <label for="password" data-i18n="auth.password">Password * (minimum 6 characters)</label>
+        <input type="password" id="password" placeholder="••••••••" required data-i18n-placeholder="auth.password">
+    </div>
+
+    <div class="form-group">
+        <label for="phone" data-i18n="auth.phone">Phone (optional)</label>
+        <input type="tel" id="phone" placeholder="07XXXXXXXX" data-i18n-placeholder="auth.phone">
+    </div>
+
+    <div class="form-group">
+        <label for="preferredLanguage" data-i18n="auth.language">Preferred Language *</label>
+        <select id="preferredLanguage" required>
+            <option value="" disabled selected data-i18n="auth.language">Select your preferred language</option>
+            <option value="en">English</option>
+            <option value="si">Sinhala</option>
+            <option value="ta">Tamil</option>
+        </select>
+    </div>
+
+    <button id="registerBtn" class="btn-primary" data-i18n="auth.register.btn">Create Account</button>
+
+    <div class="link">
+        <span data-i18n="auth.noaccount">Already have an account?</span>
+        <a href="/login.html" data-i18n="auth.signup">Login here</a>
+    </div>
+
+    <div id="errorMsg" class="error"></div>
+    <div id="successMsg" class="success"></div>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/main.js"></script>
+<script>
+    document.getElementById('registerBtn').addEventListener('click', async () => {
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName  = document.getElementById('lastName').value.trim() || null;
+        const email     = document.getElementById('email').value.trim();
+        const password  = document.getElementById('password').value;
+        const phone     = document.getElementById('phone').value.trim() || null;
+        const preferredLanguage = document.getElementById('preferredLanguage').value;
+
+        const errorDiv   = document.getElementById('errorMsg');
+        const successDiv = document.getElementById('successMsg');
+
+        errorDiv.textContent = '';
+        successDiv.textContent = '';
+
+        if (!firstName || !email || !password || !preferredLanguage) {
+            errorDiv.textContent = window.t('error.required') || 'Please fill all required fields (*)';
+            return;
+        }
+        if (password.length < 6) {
+            errorDiv.textContent = 'Password must be at least 6 characters long';
+            return;
+        }
+        if (!email.includes('@') || !email.includes('.')) {
+            errorDiv.textContent = 'Please enter a valid email address';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    firstName,
+                    lastName,
+                    email,
+                    password,
+                    phone,
+                    preferredLanguage
+                }),
+                credentials: 'include'
+            });
+
+            if (res.ok) {
+                const user = await res.json();
+                successDiv.textContent = `Account created successfully! Welcome, ${user.firstName || 'User'}!`;
+
+                localStorage.setItem('preferredLanguage', preferredLanguage);
+
+                // Give registration time to complete + retry auth
+                setTimeout(async () => {
+                    await checkAuth(5, 700);
+                    window.location.replace('/');
+                }, 1000);
+            } else {
+                const errorText = await res.text();
+                errorDiv.textContent = errorText || 'Registration failed. Please try again.';
+            }
+        } catch (err) {
+            errorDiv.textContent = window.t('error.network') || 'Network error. Please check your connection.';
+            console.error(err);
+        }
+    });
+</script>
+</body>
+</html>

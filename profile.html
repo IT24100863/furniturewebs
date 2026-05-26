@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title data-i18n="profile.details">Profile - Anura Furnitures</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .dashboard { display: flex; min-height: calc(100vh - 80px); }
+        .sidebar {
+            width: 260px;
+            background: #f8f9fa;
+            padding: 2rem 1rem;
+            border-right: 1px solid #e5e7eb;
+            position: sticky;
+            top: 80px;
+            height: fit-content;
+        }
+        .sidebar a {
+            display: block;
+            padding: 0.85rem 1.3rem;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0.4rem 0;
+            font-weight: 500;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: #e67e22;
+            color: white;
+        }
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+        }
+        .profile-section {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        .profile-section.active { display: block; }
+        .section-title { color: #2c3e50; margin-bottom: 1.8rem; font-size: 1.6rem; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .info-label { font-weight: 600; color: #555; }
+        .info-value { color: #333; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th { background: #f8f9fa; font-weight: 600; }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            margin-right: 6px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-primary { background: #e67e22; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+        }
+        .msg { margin-top: 1rem; font-size: 0.95rem; }
+        .history-list { max-height: 520px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo" data-i18n="logo">Anura Furnitures</div>
+    <div id="auth-section"></div>
+</nav>
+
+<div class="dashboard">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <a href="#" class="active" data-tab="details" data-i18n="profile.details">Personal Details</a>
+        <a href="#" data-tab="password" data-i18n="profile.password">Change Password</a>
+        <a href="#" data-tab="history" data-i18n="profile.history">Login History</a>
+        <a href="#" data-tab="addresses">📍 Addresses</a>
+        <a href="#" data-tab="saved-cards">💳 Saved Cards</a>
+        <a href="#" data-tab="orders">📦 Orders</a>
+        <a href="#" data-tab="transactions">💰 Transaction History</a>
+        <a href="#" data-tab="deliveries" class="sidebar-link">🚚 My Deliveries</a>
+        <a href="#" data-tab="reviews">⭐ My Reviews & Feedback</a>
+    </div>
+
+    <div class="main-content">
+
+        <!-- Personal Details -->
+        <div id="details" class="profile-section active">
+            <h2 class="section-title" data-i18n="profile.details">Personal Details</h2>
+            <div id="viewMode">
+                <div class="info-grid">
+                    <div class="info-label" data-i18n="auth.firstname">First Name</div>
+                    <div class="info-value" id="viewFirstName"></div>
+                    <div class="info-label" data-i18n="auth.lastname">Last Name</div>
+                    <div class="info-value" id="viewLastName"></div>
+                    <div class="info-label" data-i18n="auth.email">Email</div>
+                    <div class="info-value" id="viewEmail"></div>
+                    <div class="info-label" data-i18n="auth.phone">Phone</div>
+                    <div class="info-value" id="viewPhone"></div>
+                    <div class="info-label">Role</div>
+                    <div class="info-value" id="viewRole"></div>
+                    <div class="info-label">Verified</div>
+                    <div class="info-value" id="viewVerified"></div>
+                </div>
+            </div>
+            <form id="editForm" style="display:none;">
+                <div class="form-group">
+                    <label for="editFirstName" data-i18n="auth.firstname">First Name</label>
+                    <input type="text" id="editFirstName">
+                </div>
+                <div class="form-group">
+                    <label for="editLastName" data-i18n="auth.lastname">Last Name</label>
+                    <input type="text" id="editLastName">
+                </div>
+                <div class="form-group">
+                    <label for="editPhone" data-i18n="auth.phone">Phone</label>
+                    <input type="tel" id="editPhone">
+                </div>
+                <button type="submit" class="save-btn" data-i18n="profile.save">Save Changes</button>
+                <button type="button" id="cancelBtn" class="cancel-btn">Cancel</button>
+            </form>
+            <button id="editBtn" class="edit-btn" data-i18n="profile.edit">Edit Profile</button>
+        </div>
+
+        <!-- Change Password -->
+        <div id="password" class="profile-section">
+            <h2 class="section-title" data-i18n="profile.password">Change Password</h2>
+            <div class="form-group">
+                <label for="currentPass" data-i18n="profile.currentpass">Current Password</label>
+                <input type="password" id="currentPass">
+            </div>
+            <div class="form-group">
+                <label for="newPass" data-i18n="profile.newpass">New Password</label>
+                <input type="password" id="newPass">
+            </div>
+            <button id="changePassBtn" class="change-pass-btn" data-i18n="profile.updatepass">Update Password</button>
+            <div id="passMsg" class="msg"></div>
+        </div>
+
+        <!-- Login History -->
+        <div id="history" class="profile-section">
+            <h2 class="section-title" data-i18n="profile.history">Recent Login Activity</h2>
+            <div id="historyList" class="history-list">
+                <div class="loading" style="text-align:center; padding:3rem;">Loading...</div>
+            </div>
+        </div>
+
+        <!-- ADDRESSES -->
+        <div id="addresses" class="profile-section">
+            <h2 class="section-title">My Addresses</h2>
+            <button onclick="showAddAddressForm()" class="btn-primary" style="margin-bottom:1rem;">+ Add New Address</button>
+            <table id="addressTable">
+                <thead><tr><th>Name</th><th>Phone</th><th>City</th><th>Actions</th></tr></thead>
+                <tbody id="addressList"></tbody>
+            </table>
+        </div>
+
+        <!-- SAVED CARDS -->
+        <div id="saved-cards" class="profile-section">
+            <h2 class="section-title">Saved Cards</h2>
+            <table id="savedCardTable">
+                <thead><tr><th>Card</th><th>Holder</th><th>Expiry</th><th>Actions</th></tr></thead>
+                <tbody id="savedCardList"></tbody>
+            </table>
+        </div>
+
+        <!-- ORDERS -->
+        <div id="orders" class="profile-section">
+            <h2 class="section-title">My Orders</h2>
+            <table id="orderTable">
+                <thead><tr><th>Order ID</th><th>Date</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="orderList"></tbody>
+            </table>
+        </div>
+
+        <!-- TRANSACTIONS -->
+        <div id="transactions" class="profile-section">
+            <h2 class="section-title">Transaction History</h2>
+            <table id="transactionTable">
+                <thead><tr><th>Payment ID</th><th>Order ID</th><th>Amount</th><th>Method</th><th>Date</th></tr></thead>
+                <tbody id="transactionList"></tbody>
+            </table>
+        </div>
+
+        <!-- MY DELIVERIES -->
+        <div id="deliveries" class="profile-section">
+            <h2 class="section-title">🚚 My Deliveries</h2>
+            <div id="deliveriesContainer">
+                <div class="loading" id="deliveriesLoading" style="text-align:center; padding:3rem;">
+                    Loading your deliveries...
+                </div>
+
+                <table id="deliveriesTable" style="width:100%; border-collapse:collapse; display:none;">
+                    <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Tracking Code</th>
+                        <th>Status</th>
+                        <th>Delivery Date</th>
+                        <th>Partner</th>
+                        <th>Address Summary</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="deliveriesBody"></tbody>
+                </table>
+
+                <div id="noDeliveries" style="display:none; text-align:center; padding:60px 20px; color:#666; font-size:1.1rem;">
+                    You don't have any deliveries yet.
+                </div>
+            </div>
+        </div>
+
+        <!-- MY REVIEWS TAB -->
+        <div id="reviews" class="profile-section">
+            <h2 class="section-title">⭐ My Reviews & Feedback</h2>
+            <p style="color:#666; margin-bottom:20px;">You can edit or delete your product reviews here.</p>
+
+            <div id="reviewsContainer">
+                <div id="reviewsLoading" class="loading" style="text-align:center; padding:3rem;">
+                    Loading your reviews...
+                </div>
+                <div id="reviewsList"></div>
+            </div>
+        </div>
+
+        <!-- Bottom Buttons -->
+        <div style="margin-top: 3rem; display: flex; gap: 12px;">
+            <button class="logout-btn" onclick="logout()" data-i18n="profile.logout">Logout</button>
+            <button class="deactivate-btn" onclick="deactivateAccount()" data-i18n="profile.deactivate">Deactivate Account</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/main.js"></script>
+<script>
+    let userData = null;
+
+    // ==================== LOAD PROFILE (Fixed) ====================
+    async function loadProfile() {
+        try {
+            const res = await fetch('/api/user/profile', { credentials: 'include' });
+            if (!res.ok) throw new Error('Failed to load profile');
+
+            userData = await res.json();
+
+            // Fill view mode
+            document.getElementById('viewFirstName').textContent = userData.firstName || '—';
+            document.getElementById('viewLastName').textContent = userData.lastName || '—';
+            document.getElementById('viewEmail').textContent = userData.email || '—';
+            document.getElementById('viewPhone').textContent = userData.phone || '—';
+            document.getElementById('viewRole').textContent = userData.role || '—';
+            document.getElementById('viewVerified').textContent = userData.isVerified ? 'Yes' : 'No';
+
+            // Fill edit form
+            document.getElementById('editFirstName').value = userData.firstName || '';
+            document.getElementById('editLastName').value = userData.lastName || '';
+            document.getElementById('editPhone').value = userData.phone || '';
+        } catch (e) {
+            console.error(e);
+            window.location.href = '/login.html';
+        }
+    }
+
+    // ==================== EDIT PROFILE (Fixed) ====================
+    document.getElementById('editBtn').addEventListener('click', () => {
+        document.getElementById('viewMode').style.display = 'none';
+        document.getElementById('editForm').style.display = 'block';
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+        document.getElementById('viewMode').style.display = 'block';
+        document.getElementById('editForm').style.display = 'none';
+    });
+
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const req = {
+            firstName: document.getElementById('editFirstName').value.trim(),
+            lastName: document.getElementById('editLastName').value.trim(),
+            phone: document.getElementById('editPhone').value.trim()
+        };
+
+        try {
+            const res = await fetch('/api/user/update', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(req)
+            });
+
+            if (res.ok) {
+                alert('Profile updated successfully!');
+                document.getElementById('viewMode').style.display = 'block';
+                document.getElementById('editForm').style.display = 'none';
+                loadProfile();  // refresh
+            } else {
+                const text = await res.text();
+                alert('Update failed: ' + text);
+            }
+        } catch (err) {
+            alert('Network error. Please try again.');
+        }
+    });
+
+    // ==================== CHANGE PASSWORD (Fixed) ====================
+    document.getElementById('changePassBtn').addEventListener('click', async () => {
+        const currentPass = document.getElementById('currentPass').value.trim();
+        const newPass = document.getElementById('newPass').value.trim();
+        const msg = document.getElementById('passMsg');
+
+        msg.innerHTML = '';
+
+        if (!currentPass || !newPass) {
+            msg.innerHTML = '<span style="color:red;">Both fields are required</span>';
+            return;
+        }
+        if (newPass.length < 6) {
+            msg.innerHTML = '<span style="color:red;">New password must be at least 6 characters</span>';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/change-password', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ currentPassword: currentPass, newPassword: newPass })
+            });
+
+            const text = await res.text();
+            if (res.ok) {
+                msg.innerHTML = `<span style="color:green;">${text}</span>`;
+                document.getElementById('currentPass').value = '';
+                document.getElementById('newPass').value = '';
+            } else {
+                msg.innerHTML = `<span style="color:red;">${text}</span>`;
+            }
+        } catch (err) {
+            msg.innerHTML = '<span style="color:red;">Network error. Please try again.</span>';
+        }
+    });
+
+    // ==================== DEACTIVATE ACCOUNT (Fixed) ====================
+    async function deactivateAccount() {
+        if (!confirm("Are you sure you want to deactivate your account?\n\nThis action cannot be undone and you will be logged out.")) {
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/user/deactivate', {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            if (res.ok) {
+                alert("Your account has been deactivated successfully. You have been logged out.");
+                window.location.href = '/';
+            } else {
+                const text = await res.text();
+                alert("Deactivation failed: " + text);
+            }
+        } catch (err) {
+            alert("Network error. Please try again.");
+        }
+    }
+
+    // ==================== YOUR ORIGINAL FUNCTIONS (Kept exactly as before) ====================
+    async function loadLoginHistory() {
+        const container = document.getElementById('historyList');
+        try {
+            const res = await fetch('/api/user/login-history', { credentials: 'include' });
+            const history = await res.json();
+            if (history.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#666;">No login records found.</p>';
+                return;
+            }
+            let html = '';
+            history.forEach(item => {
+                html += `
+                    <div style="padding:12px; border-bottom:1px solid #eee; margin-bottom:8px;">
+                        <strong>${new Date(item.loginTime).toLocaleString()}</strong><br>
+                        IP: ${item.ipAddress || '—'} • Device: ${item.deviceInfo || 'Unknown'}
+                    </div>`;
+            });
+            container.innerHTML = html;
+        } catch (e) {
+            container.innerHTML = '<p style="color:red;">Failed to load history</p>';
+        }
+    }
+
+    async function loadAddresses() {
+        const tbody = document.getElementById('addressList');
+        try {
+            const res = await fetch('/api/user/addresses', { credentials: 'include' });
+            const addresses = await res.json();
+            let html = '';
+            addresses.forEach(a => {
+                html += `
+                    <tr>
+                        <td>${a.firstName} ${a.lastName || ''}</td>
+                        <td>${a.phone}</td>
+                        <td>${a.city}, ${a.district}</td>
+                        <td>
+                            <button class="btn-sm btn-primary" onclick="editAddress(${a.addressId})">Edit</button>
+                            <button class="btn-sm btn-danger" onclick="deleteAddress(${a.addressId})">Delete</button>
+                        </td>
+                    </tr>`;
+            });
+            tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No addresses saved yet.</td></tr>';
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="4" style="color:red;">Error loading addresses</td></tr>';
+        }
+    }
+
+    async function loadSavedCards() {
+        const tbody = document.getElementById('savedCardList');
+        try {
+            const res = await fetch('/api/user/saved-cards', { credentials: 'include' });
+            const cards = await res.json();
+            let html = '';
+            cards.forEach(c => {
+                html += `
+                    <tr>
+                        <td>•••• ${c.last4}</td>
+                        <td>${c.cardHolderName || '—'}</td>
+                        <td>${c.expiryDate || '—'}</td>
+                        <td><button class="btn-sm btn-danger" onclick="deleteSavedCard(${c.cardId})">Delete</button></td>
+                    </tr>`;
+            });
+            tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No saved cards yet.</td></tr>';
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="4" style="color:red;">Error loading cards</td></tr>';
+        }
+    }
+
+    async function loadOrders() {
+        const tbody = document.getElementById('orderList');
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px;">Loading orders...</td></tr>';
+        try {
+            const res = await fetch('/api/orders/my', { credentials: 'include', cache: 'no-store' });
+            if (!res.ok) {
+                if (res.status === 401) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#e67e22;">Please log in to view your orders.</td></tr>';
+                    return;
+                }
+                throw new Error(await res.text() || 'Server error');
+            }
+            const orders = await res.json();
+            if (!Array.isArray(orders) || orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No orders found yet.</td></tr>';
+                return;
+            }
+            let html = '';
+            orders.forEach(o => {
+                const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString('si-LK') : '—';
+                const total = o.totalAmount ? Number(o.totalAmount).toLocaleString('si-LK') : '0';
+                let itemsSummary = '—';
+                if (o.itemNames && o.itemNames.length > 0) {
+                    itemsSummary = o.itemNames.slice(0, 2).join(', ');
+                    if (o.itemNames.length > 2) itemsSummary += ` +${o.itemNames.length - 2} more`;
+                }
+                html += `
+                    <tr>
+                        <td>#${o.orderId}</td>
+                        <td>${date}</td>
+                        <td>Rs. ${total}</td>
+                        <td><strong>${o.status}</strong></td>
+                        <td>
+                            ${o.status === 'PENDING' ? `<button class="btn-sm btn-danger" onclick="cancelOrder(${o.orderId})">Cancel</button>` : '—'}
+                        </td>
+                    </tr>`;
+            });
+            tbody.innerHTML = html;
+        } catch (e) {
+            console.error("Load orders error:", e);
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Failed to load orders.</td></tr>`;
+        }
+    }
+
+    async function loadTransactions() {
+        const tbody = document.getElementById('transactionList');
+        try {
+            const res = await fetch('/api/user/transactions', { credentials: 'include' });
+            const txns = await res.json();
+            let html = '';
+            txns.forEach(t => {
+                html += `
+                    <tr>
+                        <td>#${t.paymentId}</td>
+                        <td>#${t.orderId}</td>
+                        <td>Rs. ${Number(t.amount).toLocaleString('si-LK')}</td>
+                        <td>${t.paymentMethod}</td>
+                        <td>${new Date(t.transactionDate).toLocaleDateString()}</td>
+                    </tr>`;
+            });
+            tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No transactions yet.</td></tr>';
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="5" style="color:red;">Error loading transactions</td></tr>';
+        }
+    }
+
+    // ==================== TAB SWITCHING (UPDATED) ====================
+    document.querySelectorAll('.sidebar a').forEach(link => {
+        link.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            // Remove active class from all sidebar links
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            link.classList.add('active');
+
+            // Hide all sections
+            document.querySelectorAll('.profile-section').forEach(s => s.classList.remove('active'));
+
+            // Show the selected section
+            const tabName = link.getAttribute('data-tab');
+            const targetSection = document.getElementById(tabName);
+
+            if (targetSection) {
+                targetSection.classList.add('active');
+
+                // Load content based on selected tab
+                switch(tabName) {
+                    case 'history':
+                        loadLoginHistory();
+                        break;
+                    case 'addresses':
+                        loadAddresses();
+                        break;
+                    case 'saved-cards':
+                        loadSavedCards();
+                        break;
+                    case 'orders':
+                        loadOrders();
+                        break;
+                    case 'transactions':
+                        loadTransactions();
+                        break;
+                    case 'deliveries':
+                        loadMyDeliveries();
+                        break;
+                    case 'reviews':
+                        loadMyReviews();        // ← This was missing!
+                        break;
+                }
+            }
+        });
+    });
+
+    // Other helper functions (unchanged)
+    function showAddAddressForm() {
+        const firstName = prompt("First Name");
+        if (!firstName) return;
+        const req = {
+            firstName: firstName,
+            lastName: prompt("Last Name") || "",
+            phone: prompt("Phone Number"),
+            country: "Sri Lanka",
+            province: prompt("Province"),
+            district: prompt("District"),
+            city: prompt("City"),
+            street: prompt("Street"),
+            houseNo: prompt("House No"),
+            apartment: prompt("Apartment (optional)") || ""
+        };
+        fetch('/api/user/addresses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(req),
+            credentials: 'include'
+        }).then(() => {
+            alert("Address added successfully!");
+            loadAddresses();
+        });
+    }
+
+    async function deleteAddress(id) {
+        if (confirm("Delete this address?")) {
+            await fetch(`/api/user/addresses/${id}`, { method: 'DELETE', credentials: 'include' });
+            loadAddresses();
+        }
+    }
+
+    async function deleteSavedCard(id) {
+        if (confirm("Delete this saved card?")) {
+            await fetch(`/api/user/saved-cards/${id}`, { method: 'DELETE', credentials: 'include' });
+            loadSavedCards();
+        }
+    }
+
+    async function cancelOrder(id) {
+        if (!confirm("Are you sure you want to cancel this order?")) return;
+        try {
+            const res = await fetch(`/api/orders/cancel/${id}`, { method: 'PUT', credentials: 'include' });
+            if (res.ok) {
+                alert("Order cancelled successfully.");
+                loadOrders();
+            } else {
+                alert("Cancellation failed: " + await res.text());
+            }
+        } catch (err) {
+            alert("Network error.");
+        }
+    }
+
+    // ==================== MY DELIVERIES ====================
+    // ==================== LOAD MY DELIVERIES ====================
+    async function loadMyDeliveries() {
+        const loading = document.getElementById('deliveriesLoading');
+        const table = document.getElementById('deliveriesTable');
+        const tbody = document.getElementById('deliveriesBody');
+        const noData = document.getElementById('noDeliveries');
+
+        loading.style.display = 'block';
+        table.style.display = 'none';
+        noData.style.display = 'none';
+        tbody.innerHTML = '';
+
+        try {
+            const res = await fetch('/api/user/deliveries', {
+                credentials: 'include',
+                cache: 'no-store'
+            });
+
+            if (!res.ok) {
+                if (res.status === 401) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:red;">Please log in to view deliveries.</td></tr>';
+                    table.style.display = 'table';
+                    loading.style.display = 'none';
+                    return;
+                }
+                throw new Error('Failed to fetch deliveries');
+            }
+
+            const deliveries = await res.json();
+
+            if (deliveries.length === 0) {
+                loading.style.display = 'none';
+                noData.style.display = 'block';
+                return;
+            }
+
+            let html = '';
+            deliveries.forEach(d => {
+                const date = d.deliveryDate
+                    ? new Date(d.deliveryDate).toLocaleDateString('en-GB')
+                    : 'Not scheduled';
+
+                const statusClass = d.status === 'DELIVERED' ? 'style="color:green;font-weight:600;"' :
+                    d.status === 'CANCELLED' ? 'style="color:red;font-weight:600;"' : '';
+
+                html += `
+                <tr>
+                    <td><strong>#${d.orderId}</strong></td>
+                    <td><code>${d.trackingCode || '—'}</code></td>
+                    <td ${statusClass}>${d.status}</td>
+                    <td>${date}</td>
+                    <td>${d.deliveryPartner || '—'}</td>
+                    <td style="max-width:250px; font-size:0.95rem;">${d.addressSummary || '—'}</td>
+                    <td>
+                        ${d.trackingCode ?
+                    `<button onclick="trackDelivery('${d.trackingCode}')" class="btn-sm" style="background:#27ae60;color:white;">Track</button>` :
+                    ''}
+                    </td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = html;
+            table.style.display = 'table';
+
+        } catch (err) {
+            console.error("Deliveries load error:", err);
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:red;">Failed to load deliveries. Please try again.</td></tr>`;
+            table.style.display = 'table';
+        } finally {
+            loading.style.display = 'none';
+        }
+    }
+
+    // Track from profile
+    function trackDelivery(code) {
+        window.location.href = `/track.html?code=${encodeURIComponent(code)}`;
+    }
+
+    // Simple address edit prompt (you can improve later with modal)
+    function editDeliveryAddress(deliveryId, orderId) {
+        if (confirm(`Update delivery address for Order #${orderId}?`)) {
+            alert("✅ Redirecting to Addresses tab.\n\nIn the next version, you will be able to edit delivery address directly here.");
+            // Switch to addresses tab
+            document.querySelector('a[data-tab="addresses"]').click();
+        }
+    }
+
+    // Page Load
+    window.addEventListener('load', async () => {
+        await applyLanguage();
+        await checkAuth();
+        await loadProfile();
+    });
+
+    // ==================== MY REVIEWS ====================
+
+    async function loadMyReviews() {
+        const container = document.getElementById('reviewsList');
+        const loading = document.getElementById('reviewsLoading');
+
+        if (loading) loading.style.display = 'block';
+
+        try {
+            const res = await fetch('/api/reviews/my', {
+                credentials: 'include'
+            });
+
+            if (!res.ok) throw new Error('Failed to load reviews');
+
+            const reviews = await res.json();
+
+            if (reviews.length === 0) {
+                container.innerHTML = `
+                <p style="text-align:center; color:#777; padding:60px 20px;">
+                    You haven't written any reviews yet.<br>
+                    <a href="/shop.html" style="color:#e67e22;">Start shopping and review products</a>
+                </p>`;
+                return;
+            }
+
+            let html = '';
+            reviews.forEach(r => {
+                const date = new Date(r.createdAt).toLocaleDateString('en-GB', {
+                    year: 'numeric', month: 'short', day: 'numeric'
+                });
+
+                html += `
+            <div class="review-card" style="margin-bottom:20px; padding:20px; border:1px solid #eee; border-radius:12px;">
+                <div style="display:flex; gap:15px;">
+                    <img src="${r.productImageUrl || '/images/placeholder.jpg'}"
+                         style="width:80px; height:80px; object-fit:cover; border-radius:8px;" alt="${r.productName}">
+
+                    <div style="flex:1;">
+                        <h4 style="margin:0 0 8px 0;">${r.productName}</h4>
+                        <div style="color:#C8A951; font-size:1.4rem; margin-bottom:8px;">
+                            ${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}
+                        </div>
+                        <p style="margin:10px 0; color:#444;">${r.comment}</p>
+                        <small style="color:#777;">Reviewed on ${date}</small>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <button onclick="editReview(${r.reviewId}, ${r.rating}, '${r.comment.replace(/'/g, "\\'")}')"
+                                class="btn-small" style="background:#3498db; color:white;">Edit</button>
+                        <button onclick="deleteReview(${r.reviewId})"
+                                class="btn-small btn-refund">Delete</button>
+                    </div>
+                </div>
+            </div>`;
+            });
+
+            container.innerHTML = html;
+
+        } catch (err) {
+            console.error(err);
+            container.innerHTML = `<p style="color:#c0392b; text-align:center;">Failed to load reviews. Please try again.</p>`;
+        } finally {
+            if (loading) loading.style.display = 'none';
+        }
+    }
+
+    // Edit Review
+    let currentEditingReviewId = null;
+
+    function editReview(reviewId, currentRating, currentComment) {
+        currentEditingReviewId = reviewId;
+
+        const newRating = prompt("Update rating (1-5):", currentRating);
+        if (newRating === null) return;
+
+        const ratingNum = parseInt(newRating);
+        if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+            alert("Rating must be between 1 and 5");
+            return;
+        }
+
+        const newComment = prompt("Update your comment:", currentComment);
+        if (newComment === null) return;
+
+        if (!newComment.trim()) {
+            alert("Comment cannot be empty");
+            return;
+        }
+
+        fetch(`/api/reviews/${reviewId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                rating: ratingNum,
+                comment: newComment.trim()
+            })
+        })
+            .then(res => {
+                if (res.ok) {
+                    alert("Review updated successfully!");
+                    loadMyReviews();   // refresh
+                } else {
+                    alert("Failed to update review");
+                }
+            })
+            .catch(() => alert("Error updating review"));
+    }
+
+    // Delete Review
+    function deleteReview(reviewId) {
+        if (!confirm("Are you sure you want to delete this review?")) return;
+
+        fetch(`/api/reviews/${reviewId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        })
+            .then(res => {
+                if (res.ok) {
+                    alert("Review deleted successfully");
+                    loadMyReviews();
+                } else {
+                    alert("Failed to delete review");
+                }
+            })
+            .catch(() => alert("Error deleting review"));
+    }
+
+
+    // Make functions available for inline onclick handlers
+    window.deactivateAccount = deactivateAccount;
+    window.showAddAddressForm = showAddAddressForm;
+    window.deleteAddress = deleteAddress;
+    window.deleteSavedCard = deleteSavedCard;
+    window.cancelOrder = cancelOrder;
+    window.trackDelivery = trackDelivery;
+    window.editDeliveryAddress = editDeliveryAddress;
+
+</script>
+</body>
+</html>

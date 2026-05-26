@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title data-i18n="auth.login.title">Login - Anura Furnitures</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .auth-container {
+            max-width: 420px;
+            margin: 80px auto;
+            padding: 40px 32px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        h2 { text-align: center; margin-bottom: 32px; color: #2c3e50; font-weight: 700; }
+        .form-group { margin-bottom: 24px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; color: #444; }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #e67e22;
+            box-shadow: 0 0 0 3px rgba(230,126,34,0.15);
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { background: #1a252f; }
+        .google-btn {
+            background: #4285F4;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+            padding: 14px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+        .google-btn img { height: 20px; }
+        .divider { text-align: center; margin: 28px 0; color: #777; font-size: 0.95rem; }
+        .link { text-align: center; margin-top: 20px; font-size: 0.95rem; }
+        .link a { color: #2c3e50; text-decoration: none; font-weight: 500; }
+        .link a:hover { text-decoration: underline; }
+        .error { color: #e74c3c; font-size: 14px; text-align: center; margin-top: 12px; }
+        .success { color: #27ae60; font-size: 14px; text-align: center; margin-top: 12px; }
+        #forgotForm { margin-top: 16px; display: none; }
+        #forgotPasswordLink { color: #e67e22; cursor: pointer; font-size: 0.95rem; }
+        #forgotPasswordLink:hover { text-decoration: underline; }
+        #sendResetBtn { background: #e67e22; color: white; }
+        #sendResetBtn:hover { background: #d35400; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="container" style="display:flex; justify-content:space-between; align-items:center; padding:16px 40px;">
+        <div class="logo" data-i18n="logo">Anura Furnitures</div>
+        <div id="auth-section">
+            <a href="/login.html" data-i18n="nav.login">Login</a> |
+            <a href="/register.html" data-i18n="nav.register">Register</a>
+        </div>
+    </div>
+</nav>
+
+<div class="auth-container">
+    <h2 data-i18n="auth.login.title">Sign In</h2>
+
+    <div class="form-group">
+        <label for="email" data-i18n="auth.email">Email</label>
+        <input type="email" id="email" placeholder="your@email.com" required autofocus>
+    </div>
+
+    <div class="form-group">
+        <label for="password" data-i18n="auth.password">Password</label>
+        <input type="password" id="password" placeholder="••••••••" required>
+    </div>
+
+    <div style="text-align: right; margin-bottom: 20px;">
+        <span id="forgotPasswordLink" data-i18n="auth.forgot">Forgot password?</span>
+    </div>
+
+    <button id="loginBtn" class="btn-primary" data-i18n="auth.login.btn">Login</button>
+
+    <div class="divider" data-i18n="divider.or">or</div>
+
+    <a href="/oauth2/authorization/google" class="google-btn" data-i18n="auth.google">
+        <img src="https://www.google.com/favicon.ico" alt="Google">
+        Continue with Google
+    </a>
+
+    <div class="link">
+        <span data-i18n="auth.noaccount">Don't have an account?</span>
+        <a href="/register.html" data-i18n="auth.signup">Sign up</a>
+    </div>
+
+    <!-- Forgot password section -->
+    <div id="forgotForm">
+        <div class="form-group">
+            <label for="resetEmail" data-i18n="auth.email">Enter your email address</label>
+            <input type="email" id="resetEmail" placeholder="your@email.com" required>
+        </div>
+        <button id="sendResetBtn" class="btn-primary" data-i18n="forgot.send">Send Reset Link</button>
+        <div id="resetMsg" class="error"></div>
+    </div>
+
+    <div id="errorMsg" class="error"></div>
+    <div id="successMsg" class="success"></div>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/main.js"></script>
+<script>
+    // ==================== NORMAL LOGIN ====================
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const errorDiv = document.getElementById('errorMsg');
+        const successDiv = document.getElementById('successMsg');
+
+        errorDiv.textContent = '';
+        successDiv.textContent = '';
+
+        if (!email || !password) {
+            errorDiv.textContent = window.t('error.required') || 'Please enter both email and password';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+                credentials: 'include'
+            });
+
+            if (res.ok) {
+                const user = await res.json();
+                successDiv.textContent = `Welcome back, ${user.firstName || 'User'}! Redirecting...`;
+
+                if (user.preferredLanguage) {
+                    localStorage.setItem('preferredLanguage', user.preferredLanguage);
+                }
+
+                // CRITICAL: Role-based redirect + give session time to settle
+                setTimeout(async () => {
+                    await checkAuth(6, 600);   // increased attempts for reliability
+
+                    if (user.role === 'ADMIN') {
+                        window.location.replace('/admin.html');
+                    } else {
+                        window.location.replace('/');
+                    }
+                }, 800);
+
+            } else {
+                const err = await res.text();
+                errorDiv.textContent = err || window.t('auth.invalid') || 'Invalid email or password';
+            }
+        } catch (err) {
+            errorDiv.textContent = window.t('error.network') || 'Something went wrong. Please try again.';
+            console.error(err);
+        }
+    });
+
+    // ==================== FORGOT PASSWORD (unchanged) ====================
+    document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        const forgotForm = document.getElementById('forgotForm');
+        forgotForm.style.display = forgotForm.style.display === 'block' ? 'none' : 'block';
+    });
+
+    document.getElementById('sendResetBtn').addEventListener('click', async () => {
+        const email = document.getElementById('resetEmail').value.trim();
+        const msg = document.getElementById('resetMsg');
+        msg.textContent = '';
+        msg.className = 'error';
+
+        if (!email) {
+            msg.textContent = window.t('error.required') || 'Please enter your email';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+                credentials: 'include'
+            });
+
+            const text = await res.text();
+            msg.className = res.ok ? 'success' : 'error';
+            msg.textContent = res.ok ? (window.t('forgot.sent') || "Reset link sent! Check your inbox.") : (text || 'Something went wrong');
+        } catch (err) {
+            msg.textContent = window.t('error.network') || 'Network error. Please try again later.';
+        }
+    });
+</script>
+</body>
+</html>
