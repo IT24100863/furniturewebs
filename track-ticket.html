@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Support Ticket - Anura Furnitures</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .track-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .track-header {
+      background: #5D4037;
+      color: white;
+      padding: 35px;
+      text-align: center;
+    }
+    .search-bar {
+      width: 100%;
+      padding: 18px 24px;
+      font-size: 1.25rem;
+      border: 3px solid #C8A951;
+      border-radius: 50px;
+      text-align: center;
+    }
+    .ticket-info {
+      padding: 40px;
+    }
+    .reply {
+      background: #f9f9f9;
+      padding: 18px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border-left: 4px solid #e67e22;
+    }
+    .status-badge {
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-navbar">
+  <div class="logo">Anura Furnitures</div>
+  <div class="navbar-right" id="auth-section"></div>
+</div>
+
+<div class="track-container">
+  <div class="track-header">
+    <h1>🎟️ Track Your Support Ticket</h1>
+    <p>Enter your ticket code to see status and replies</p>
+  </div>
+
+  <div style="padding: 40px;">
+    <input type="text" id="ticketCode" class="search-bar"
+           placeholder="TICKET-XXXXXXXX" maxlength="20" style="text-transform: uppercase;">
+    <button onclick="searchTicket()"
+            style="width:100%; margin-top:20px; padding:16px; background:#e67e22; color:white; font-size:1.2rem; border:none; border-radius:50px; cursor:pointer;">
+      Track Ticket
+    </button>
+
+    <div id="result" style="margin-top:40px; display:none;"></div>
+  </div>
+</div>
+
+<script src="/js/main.js"></script>
+<script>
+  async function searchTicket() {
+    const code = document.getElementById('ticketCode').value.trim().toUpperCase();
+    const resultDiv = document.getElementById('result');
+
+    if (!code) {
+      alert("Please enter a ticket code");
+      return;
+    }
+
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `<p style="text-align:center;">🔍 Searching for ticket <strong>${code}</strong>...</p>`;
+
+    try {
+      const res = await fetch(`/api/tickets/track?code=${code}`);
+
+      if (!res.ok) throw new Error("Invalid ticket code");
+
+      const ticket = await res.json();
+
+      let repliesHtml = '';
+      if (ticket.replies && ticket.replies.length > 0) {
+        repliesHtml = `<h3 style="margin:30px 0 15px;">Replies from Support</h3>`;
+        ticket.replies.forEach(reply => {
+          repliesHtml += `
+                    <div class="reply">
+                        <strong>${reply.senderName}</strong>
+                        <small style="color:#777; float:right;">${new Date(reply.createdAt).toLocaleString('en-GB')}</small>
+                        <p style="margin-top:10px;">${reply.message}</p>
+                    </div>`;
+        });
+      } else {
+        repliesHtml = `<p style="color:#777; font-style:italic; margin-top:30px;">No replies yet. Our team will respond soon.</p>`;
+      }
+
+      let html = `
+                <div style="text-align:center; margin-bottom:30px;">
+                    <h2 style="color:#5D4037;">Ticket #${ticket.ticketCode}</h2>
+                    <span class="status-badge" style="background:#e67e22; color:white; padding:8px 20px; border-radius:30px;">
+                        ${ticket.status}
+                    </span>
+                </div>
+
+                <h3>${ticket.subject}</h3>
+                <p><strong>Type:</strong> ${ticket.requestType}</p>
+                <p><strong>Customer:</strong> ${ticket.customerName}</p>
+                <p><strong>Opened on:</strong> ${new Date(ticket.createdAt).toLocaleDateString('en-GB')}</p>
+
+                ${repliesHtml}
+            `;
+
+      resultDiv.innerHTML = html;
+
+    } catch (e) {
+      resultDiv.innerHTML = `
+                <p style="color:#e74c3c; text-align:center; font-size:1.3rem; margin-top:30px;">
+                    ❌ Invalid or expired ticket code.<br>
+                    <small>Please check the code sent to your email.</small>
+                </p>`;
+    }
+  }
+
+  // Allow pressing Enter
+  document.getElementById('ticketCode').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') searchTicket();
+  });
+
+  window.onload = async () => {
+    await applyLanguage();
+    await checkAuth();
+  };
+</script>
+</body>
+</html>

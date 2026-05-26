@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tickets - Anura Furnitures</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .ticket-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-left: 5px solid #e67e22;
+            position: relative;
+        }
+        .ticket-actions {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+        }
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-edit { background: #3498db; color: white; }
+        .btn-delete { background: #e74c3c; color: white; }
+        .status-open { color: #f39c12; }
+        .status-inprogress { color: #3498db; }
+        .status-resolved { color: #27ae60; }
+        .status-closed { color: #95a5a6; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #5D4037; }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        textarea { min-height: 140px; resize: vertical; }
+        .btn-submit { background: #e67e22; color: white; padding: 14px 32px; border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer; }
+        .btn-reset { background: #f1f1f1; color: #555; padding: 14px 32px; border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-navbar">
+    <div class="logo">Anura Furnitures</div>
+    <div class="navbar-right" id="auth-section"></div>
+</div>
+
+<div class="second-navbar">
+    <a href="/shop.html">Shop</a>
+    <a href="/tickets.html" style="color:#C8A951; font-weight:600;">🎟️ My Tickets</a>
+    <a href="/track-ticket.html">Track Ticket</a>
+</div>
+
+<div class="container" style="max-width: 1100px; margin: 40px auto; padding: 20px;">
+
+    <h1 style="color:#5D4037; margin-bottom: 30px;">My Support Tickets</h1>
+
+    <!-- Create New Ticket Form -->
+    <div class="ticket-card">
+        <h2 style="margin-bottom: 20px; color:#5D4037;">Create New Ticket</h2>
+        <form id="ticketForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>Contact Number</label>
+                <input type="tel" id="contactNumber" placeholder="0771234567" required>
+            </div>
+            <div class="form-group">
+                <label>Request Type</label>
+                <select id="requestType" required>
+                    <option value="">Select Type</option>
+                    <option value="Complaint">Complaint</option>
+                    <option value="Inquiry">Product Inquiry</option>
+                    <option value="Technical">Technical Issue</option>
+                    <option value="Delivery">Delivery Related</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Subject</label>
+                <input type="text" id="subject" placeholder="Brief subject of your request" required>
+            </div>
+            <div class="form-group">
+                <label>Message</label>
+                <textarea id="message" placeholder="Describe your issue or request in detail..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Attachments (optional)</label>
+                <input type="file" id="attachments" multiple accept="image/*,.pdf,.doc,.docx">
+                <small style="color:#777;">You can upload images or documents</small>
+            </div>
+
+            <div style="margin-top: 25px;">
+                <button type="submit" class="btn-submit">Submit Ticket</button>
+                <button type="reset" class="btn-reset" style="margin-left: 12px;">Reset Form</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- My Tickets List -->
+    <h2 style="margin: 40px 0 20px; color:#5D4037;">My Previous Tickets</h2>
+    <div id="ticketList">
+        <p class="loading">Loading your tickets...</p>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h2>Edit Ticket</h2>
+        <form id="editForm">
+            <input type="hidden" id="editTicketId">
+
+            <div class="form-group">
+                <label>Contact Number</label>
+                <input type="tel" id="editContactNumber" required>
+            </div>
+            <div class="form-group">
+                <label>Request Type</label>
+                <select id="editRequestType" required>
+                    <option value="Complaint">Complaint</option>
+                    <option value="Inquiry">Product Inquiry</option>
+                    <option value="Technical">Technical Issue</option>
+                    <option value="Delivery">Delivery Related</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Subject</label>
+                <input type="text" id="editSubject" required>
+            </div>
+            <div class="form-group">
+                <label>Message</label>
+                <textarea id="editMessage" required></textarea>
+            </div>
+
+            <div style="margin-top: 20px; display:flex; gap:10px;">
+                <button type="submit" class="btn-submit">Save Changes</button>
+                <button type="button" onclick="closeEditModal()" class="btn-reset">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="/js/main.js"></script>
+<script>
+    let currentEditingTicketId = null;
+
+    // Submit New Ticket
+    document.getElementById('ticketForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('contactNumber', document.getElementById('contactNumber').value.trim());
+        formData.append('requestType', document.getElementById('requestType').value);
+        formData.append('subject', document.getElementById('subject').value.trim());
+        formData.append('message', document.getElementById('message').value.trim());
+
+        const files = document.getElementById('attachments').files;
+        for (let file of files) formData.append('attachments', file);
+
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Submitting...";
+
+        try {
+            const res = await fetch('/api/tickets/create', {
+                method: 'POST',
+                credentials: 'include',
+                body: formData
+            });
+
+            if (res.ok) {
+                alert("✅ Ticket submitted successfully!\nCheck your email for the tracking code.");
+                this.reset();
+                loadMyTickets();
+            } else {
+                alert("Failed to submit ticket.");
+            }
+        } catch (err) {
+            alert("Network error. Please try again.");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    });
+
+    // Load My Tickets with Edit/Delete buttons
+    async function loadMyTickets() {
+        const container = document.getElementById('ticketList');
+        container.innerHTML = '<p class="loading">Loading your tickets...</p>';
+
+        try {
+            const res = await fetch('/api/tickets/my', { credentials: 'include' });
+            if (!res.ok) throw new Error();
+
+            const tickets = await res.json();
+
+            if (tickets.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:#777; padding:40px;">You have no support tickets yet.</p>`;
+                return;
+            }
+
+            let html = '';
+            tickets.forEach(t => {
+                const isOpen = t.status === 'OPEN' || t.status === 'IN_PROGRESS';
+
+                html += `
+                <div class="ticket-card">
+                    <div class="ticket-actions">
+                        ${isOpen ? `
+                        <button class="btn-small btn-edit" onclick="editTicket(${t.ticketId})">Edit</button>
+                        <button class="btn-small btn-delete" onclick="deleteTicket(${t.ticketId})">Delete</button>
+                        ` : ''}
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <strong>${t.ticketCode}</strong>
+                        <span class="status-${t.status.toLowerCase()}">${t.status}</span>
+                    </div>
+                    <h4>${t.subject}</h4>
+                    <p><strong>Type:</strong> ${t.requestType || 'General'}</p>
+                    <p><small>Created: ${new Date(t.createdAt).toLocaleDateString('en-GB')}</small></p>
+                    <p><strong>Replies:</strong> ${t.replyCount || 0}</p>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        } catch (err) {
+            container.innerHTML = `<p style="color:#e74c3c; text-align:center;">Failed to load tickets.</p>`;
+        }
+    }
+
+    // Edit Ticket
+    async function editTicket(ticketId) {
+        try {
+            // For simplicity, we fetch the full ticket details (you may need to add a GET /api/tickets/{id} endpoint)
+            // For now, we'll use a simple prompt approach or you can enhance it later
+            const newSubject = prompt("Enter new subject:");
+            if (!newSubject) return;
+
+            const newMessage = prompt("Enter new message:");
+            if (!newMessage) return;
+
+            const res = await fetch(`/api/tickets/${ticketId}`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subject: newSubject,
+                    message: newMessage
+                })
+            });
+
+            if (res.ok) {
+                alert("Ticket updated successfully!");
+                loadMyTickets();
+            } else {
+                alert("Failed to update ticket.");
+            }
+        } catch (err) {
+            alert("Error updating ticket.");
+        }
+    }
+
+    // Delete Ticket
+    async function deleteTicket(ticketId) {
+        if (!confirm("Are you sure you want to delete this ticket? This action cannot be undone.")) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/tickets/${ticketId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (res.ok) {
+                alert("Ticket deleted successfully.");
+                loadMyTickets();
+            } else {
+                alert("Failed to delete ticket.");
+            }
+        } catch (err) {
+            alert("Error deleting ticket.");
+        }
+    }
+
+    // Page Load
+    window.onload = async () => {
+        await applyLanguage();
+        await checkAuth();
+        await loadMyTickets();
+    };
+
+    // Expose functions globally
+    window.editTicket = editTicket;
+    window.deleteTicket = deleteTicket;
+</script>
+</body>
+</html>
