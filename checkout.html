@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Anura Furnitures</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .checkout-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+        }
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .payment-card {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+        }
+        .payment-card.active {
+            border-color: #e67e22;
+            background: #fffef9;
+        }
+        .saved-cards {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .address-form, .new-card-form {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+        .complete-btn {
+            background: #e67e22;
+            color: white;
+            padding: 16px;
+            font-size: 1.2rem;
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .complete-btn:hover {
+            background: #d35400;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+<div class="top-navbar"><!-- your existing navbar --></div>
+<div class="second-navbar"><!-- your existing second navbar --></div>
+<div class="utility-bar"><!-- your existing utility bar --></div>
+
+<div class="checkout-container">
+    <!-- LEFT COLUMN -->
+    <div>
+        <!-- SHIPPING ADDRESS -->
+        <div class="section">
+            <h2>Shipping Address</h2>
+            <select id="addressSelect" style="width:100%; padding:14px; font-size:1.05rem;">
+                <option value="new">+ Add New Address</option>
+            </select>
+
+            <!-- New Address Form -->
+            <div id="newAddressForm" class="address-form">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div><label>First Name *</label><input type="text" id="firstName" required></div>
+                    <div><label>Last Name</label><input type="text" id="lastName"></div>
+                </div>
+                <div><label>Phone Number *</label><input type="tel" id="phone" required></div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div><label>Country *</label><input type="text" id="country" value="Sri Lanka" required></div>
+                    <div><label>Province</label><input type="text" id="province"></div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div><label>District</label><input type="text" id="district"></div>
+                    <div><label>City *</label><input type="text" id="city" required></div>
+                </div>
+                <div><label>Street</label><input type="text" id="street"></div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div><label>House No</label><input type="text" id="houseNo"></div>
+                    <div><label>Apartment (Optional)</label><input type="text" id="apartment"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAYMENT METHOD -->
+        <div class="section">
+            <h2>Payment Method</h2>
+            <div class="radio-group">
+                <label class="payment-card active">
+                    <input type="radio" name="paymentMethod" value="CARD" checked> Visa / MasterCard
+                </label>
+                <label class="payment-card">
+                    <input type="radio" name="paymentMethod" value="GOOGLE_PAY"> Google Pay
+                </label>
+                <label class="payment-card">
+                    <input type="radio" name="paymentMethod" value="KOKO"> Koko (Buy Now Pay Later)
+                </label>
+            </div>
+
+            <!-- SAVED CARDS (NEW) -->
+            <div id="savedCardsSection" class="saved-cards" style="display: none;">
+                <label><strong>Use Saved Card</strong></label>
+                <select id="savedCardSelect" style="width:100%; padding:12px;">
+                    <option value="">Select a saved card...</option>
+                </select>
+            </div>
+
+            <!-- New Card Form -->
+            <div id="newCardForm" class="new-card-form">
+                <input id="cardHolderName" placeholder="Card Holder Name" required>
+                <input id="cardNumber" placeholder="Card Number (16 digits)" maxlength="19">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <input id="expiry" placeholder="MM/YY" maxlength="5" required>
+                    <input id="cvv" placeholder="CVV" maxlength="4" required>
+                </div>
+                <label style="margin-top:15px; display:flex; align-items:center; gap:8px;">
+                    <input type="checkbox" id="saveCard" checked> Remember this card for future use
+                </label>
+                <p style="font-size:0.9rem; color:#666; margin-top:10px;">
+                    Anura Furnitures follows PCI DSS security standards.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN - ORDER SUMMARY -->
+    <div>
+        <div class="section">
+            <h2>Order Summary</h2>
+            <div id="summaryItems"></div>
+            <hr>
+            <div class="summary-item"><span>Total Items</span><span id="totalItems">0</span></div>
+            <div class="summary-item"><span>Subtotal</span><span id="subtotal">Rs. 0.00</span></div>
+            <div class="summary-item"><span>Discount</span><span style="color:green;">Rs. 0.00</span></div>
+            <div class="summary-item" style="font-weight:bold; font-size:1.3rem;">
+                <span>Order Total</span><span id="orderTotal">Rs. 0.00</span>
+            </div>
+            <button onclick="completeOrder()" class="complete-btn">COMPLETE ORDER</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/main.js"></script>
+<script>
+    let selectedSavedCardId = null;
+
+    async function loadCheckout() {
+        // Load Saved Addresses
+        try {
+            const addrRes = await fetch('/api/user/addresses', { credentials: 'include' });
+            if (addrRes.ok) {
+                const addresses = await addrRes.json();
+                const select = document.getElementById('addressSelect');
+                addresses.forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = a.addressId;
+                    opt.textContent = `${a.firstName} ${a.lastName || ''} - ${a.phone} (${a.city})`;
+                    select.appendChild(opt);
+                });
+            }
+        } catch (e) { console.error("Failed to load addresses", e); }
+
+        // Toggle new address form
+        const addressSelect = document.getElementById('addressSelect');
+        const newAddressForm = document.getElementById('newAddressForm');
+        function toggleAddressForm() {
+            newAddressForm.style.display = (addressSelect.value === 'new') ? 'block' : 'none';
+        }
+        toggleAddressForm();
+        addressSelect.addEventListener('change', toggleAddressForm);
+
+        // Load Saved Cards (NEW)
+        try {
+            const cardRes = await fetch('/api/user/saved-cards/checkout', { credentials: 'include' });
+            if (cardRes.ok) {
+                const cards = await cardRes.json();
+                if (cards.length > 0) {
+                    document.getElementById('savedCardsSection').style.display = 'block';
+                    const cardSelect = document.getElementById('savedCardSelect');
+                    cards.forEach(card => {
+                        const opt = document.createElement('option');
+                        opt.value = card.cardId;
+                        opt.textContent = `${card.cardType} •••• ${card.last4} (${card.expiryDate}) - ${card.cardHolderName}`;
+                        cardSelect.appendChild(opt);
+                    });
+                }
+            }
+        } catch (e) { console.error("Failed to load saved cards", e); }
+
+        // Payment method toggle
+        document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                const isCard = radio.value === 'CARD';
+                document.getElementById('newCardForm').style.display = isCard ? 'block' : 'none';
+                document.getElementById('savedCardsSection').style.display = isCard ? 'block' : 'none';
+            });
+        });
+
+        // Saved Card Selection
+        document.getElementById('savedCardSelect').addEventListener('change', function() {
+            selectedSavedCardId = this.value ? parseInt(this.value) : null;
+            document.getElementById('newCardForm').style.display = this.value ? 'none' : 'block';
+        });
+
+        // Load Cart Summary
+        try {
+            const cartRes = await fetch('/api/cart', { credentials: 'include' });
+            if (cartRes.ok) {
+                const cart = await cartRes.json();
+                let html = '';
+                cart.items.forEach(item => {
+                    html += `
+                            <div class="summary-item">
+                                <span>${item.name} × ${item.quantity}</span>
+                                <span>Rs. ${Number(item.price * item.quantity).toLocaleString('si-LK')}</span>
+                            </div>`;
+                });
+                document.getElementById('summaryItems').innerHTML = html;
+                document.getElementById('totalItems').textContent = cart.items.reduce((sum, i) => sum + i.quantity, 0);
+                document.getElementById('subtotal').textContent = `Rs. ${Number(cart.total || 0).toLocaleString('si-LK')}`;
+                document.getElementById('orderTotal').textContent = `Rs. ${Number(cart.total || 0).toLocaleString('si-LK')}`;
+            }
+        } catch (e) { console.error("Failed to load cart", e); }
+    }
+
+    async function completeOrder() {
+        const addressSelect = document.getElementById('addressSelect');
+        const isNewAddress = addressSelect.value === 'new';
+
+        const req = {
+            addressId: isNewAddress ? null : parseInt(addressSelect.value),
+            paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
+            saveCard: document.getElementById('saveCard').checked
+        };
+
+        // New Address fields
+        if (isNewAddress) {
+            req.firstName = document.getElementById('firstName').value.trim();
+            req.lastName = document.getElementById('lastName').value.trim();
+            req.phone = document.getElementById('phone').value.trim();
+            req.country = document.getElementById('country').value.trim();
+            req.province = document.getElementById('province').value.trim();
+            req.district = document.getElementById('district').value.trim();
+            req.city = document.getElementById('city').value.trim();
+            req.street = document.getElementById('street').value.trim();
+            req.houseNo = document.getElementById('houseNo').value.trim();
+            req.apartment = document.getElementById('apartment').value.trim();
+
+            if (!req.firstName || !req.phone || !req.city) {
+                alert("Please fill all required address fields (*)");
+                return;
+            }
+        }
+
+        // Card Details (only if paying with new card)
+        if (req.paymentMethod === 'CARD' && !selectedSavedCardId) {
+            req.cardHolderName = document.getElementById('cardHolderName').value.trim();
+            req.cardNumber = document.getElementById('cardNumber').value.trim().replace(/\s/g, '');
+            req.expiry = document.getElementById('expiry').value.trim();
+            req.cvv = document.getElementById('cvv').value.trim();
+
+            if (!req.cardHolderName || !req.cardNumber || !req.expiry) {
+                alert("Please fill card holder name, number and expiry");
+                return;
+            }
+        }
+
+        // If saved card is selected
+        if (selectedSavedCardId) {
+            req.savedCardId = selectedSavedCardId;
+        }
+
+        try {
+            const res = await fetch('/api/orders/place', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(req),
+                credentials: 'include'
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                alert(`✅ Order placed successfully!\nOrder ID: ${data.orderId}\nConfirmation & Invoice sent to your email.`);
+                window.location.href = '/';
+            } else {
+                const text = await res.text();
+                alert("Error: " + text);
+            }
+        } catch (err) {
+            alert("Network error. Please try again.");
+        }
+    }
+
+    // Initialize
+    window.onload = loadCheckout;
+</script>
+</body>
+</html>

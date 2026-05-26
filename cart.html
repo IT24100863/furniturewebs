@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="cart.title">My Cart - Anura Furnitures</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .cart-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            background: white;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .cart-item img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 20px;
+        }
+        .item-info {
+            flex: 1;
+        }
+        .quantity-input {
+            width: 70px;
+            padding: 8px;
+            text-align: center;
+        }
+        .total {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #C8A951;
+        }
+        .checkout-btn {
+            background: #e67e22;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .checkout-btn:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-navbar">
+    <!-- your existing navbar structure -->
+</div>
+<div class="second-navbar">
+    <!-- your existing second navbar -->
+</div>
+<div class="utility-bar">
+    <!-- your existing utility bar -->
+</div>
+
+<div class="cart-container">
+    <h2 data-i18n="cart.title">My Cart</h2>
+
+    <div id="cartItems"></div>
+
+    <div style="text-align:right; margin-top:40px; background:white; padding:25px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.08);">
+        <h3>Total: <span id="cartTotal" class="total">Rs. 0</span></h3>
+
+        <div style="margin-top:25px; display:flex; gap:15px; justify-content:flex-end; flex-wrap:wrap;">
+            <a href="/shop.html" class="btn-primary">Continue Shopping</a>
+
+            <!-- PLACE ORDER BUTTON - Updated and Styled -->
+            <button onclick="window.location.href='/checkout.html'"
+                    class="checkout-btn">
+                Place Order
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/main.js"></script>
+<script>
+    async function loadCart() {
+        try {
+            const res = await fetch('/api/cart', {credentials: 'include'});
+            if (!res.ok) throw new Error();
+
+            const cart = await res.json();
+            const container = document.getElementById('cartItems');
+            let html = '';
+
+            if (!cart.items || cart.items.length === 0) {
+                html = `<p style="text-align:center; font-size:1.3rem; color:#777;">
+                                Your cart is empty.<br>
+                                <a href="/shop.html">Start shopping →</a>
+                            </p>`;
+            } else {
+                cart.items.forEach(item => {
+                    html += `
+                            <div class="cart-item">
+                                <img src="${item.imageUrls && item.imageUrls[0] ? item.imageUrls[0] : '/images/placeholder.jpg'}"
+                                     alt="${item.name}">
+                                <div class="item-info">
+                                    <h4>${item.name}</h4>
+                                    <p class="price">Rs. ${Number(item.price).toLocaleString('si-LK')}</p>
+                                </div>
+                                <input type="number" class="quantity-input" value="${item.quantity}"
+                                       min="1" onchange="updateQuantity(${item.productId}, this.value)">
+                                <button onclick="removeItem(${item.productId})"
+                                        style="background:#e74c3c; color:white; border:none; padding:8px 16px; border-radius:6px; margin-left:15px;">
+                                    Remove
+                                </button>
+                            </div>`;
+                });
+            }
+
+            container.innerHTML = html;
+            document.getElementById('cartTotal').textContent = `Rs. ${Number(cart.total || 0).toLocaleString('si-LK')}`;
+
+        } catch (e) {
+            document.getElementById('cartItems').innerHTML = '<p>Error loading cart. Please refresh.</p>';
+        }
+    }
+
+    async function updateQuantity(productId, qty) {
+        await fetch('/api/cart/update', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({productId, quantity: parseInt(qty)}),
+            credentials: 'include'
+        });
+        loadCart();
+        loadCartCount();
+    }
+
+    async function removeItem(productId) {
+        if (!confirm('Remove this item?')) return;
+        await fetch(`/api/cart/remove/${productId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        loadCart();
+        loadCartCount();
+    }
+
+    window.onload = async () => {
+        await applyLanguage();
+        await checkAuth();
+        await loadCart();
+        await loadCartCount();
+    };
+</script>
+</body>
+</html>

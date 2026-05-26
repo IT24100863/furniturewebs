@@ -1,0 +1,58 @@
+{
+  "logo": "අනුර ෆර්නිචර්ස්",
+  "nav.shop": "සාප්පුව",
+  "nav.categories": "ප්‍රවර්ග",
+  "nav.offers": "ඔෆර්ස්",
+  "nav.contact": "සම්බන්ධතා",
+  "nav.profile": "පැතිකඩ",
+  "nav.login": "ඇතුල් වන්න",
+  "nav.register": "ලියාපදිංචි වන්න",
+  "nav.logout": "ඉවත් වන්න",
+
+  "hero.title": "නවීන ජීවන රටාව සඳහා තිත්‍ර සැපයුම",
+  "hero.subtitle": "කාලානුරූපී ගෘහ නිර්මාණය සමඟ දෛනික සුඛය ඒකාබද්ධ කරන අතේ දැමූ ගෘහ ඔබට සොයාගන්න.",
+  "hero.btn": "එකතුව බලන්න",
+
+  "why.title": "අනුර ෆර්නිචර්ස් තෝරාගන්නේ ඇයි",
+  "feature.premium.title": "උසස් තත්ත්වය",
+  "feature.modern.title": "නවීන සහ කාලානුරූපී",
+  "feature.value.title": "හොඳම වටිනාකම",
+
+  "auth.login.title": "ඇතුල් වන්න",
+  "auth.email": "විද්‍යුත් තැපැල් ලිපිනය",
+  "auth.password": "මුරපදය",
+  "auth.forgot": "මුරපදය අමතකද?",
+  "auth.login.btn": "ඇතුල් වන්න",
+  "auth.google": "Google සමඟ ඉදිරියට",
+  "auth.noaccount": "ගිණුමක් නැද්ද?",
+  "auth.signup": "ලියාපදිංචි වන්න",
+
+  "auth.register.title": "ගිණුමක් සාදන්න",
+  "auth.firstname": "පළමු නම *",
+  "auth.lastname": "අවසන් නම",
+  "auth.phone": "දුරකථන අංකය (අවශ්‍ය නැත)",
+  "auth.language": "කැමති භාෂාව *",
+  "auth.register.btn": "ගිණුම සාදන්න",
+
+  "profile.details": "පෞද්ගලික විස්තර",
+  "profile.password": "මුරපදය වෙනස් කරන්න",
+  "profile.history": "පිවිසුම් ඉතිහාසය",
+  "profile.edit": "පැතිකඩ වෙනස් කරන්න",
+  "profile.save": "වෙනස්කම් සුරකින්න",
+  "profile.currentpass": "වත්මන් මුරපදය",
+  "profile.newpass": "නව මුරපදය",
+  "profile.updatepass": "මුරපදය යාවත්කාලීන කරන්න",
+  "profile.logout": "ඉවත් වන්න",
+  "profile.deactivate": "ගිණුම අක්‍රිය කරන්න",
+
+  "select.lang.title": "සාදරයෙන් පිළිගනිමු! කැමති භාෂාව තෝරන්න",
+  "select.continue": "ඉදිරියට",
+
+  "product.details": "නිෂ්පාදන විස්තර",
+  "product.addcart": "සාප්පු බඩු ලැයිස්තුවට එකතු කරන්න",
+  "product.stock": "තොගය තිබේ",
+  "product.outofstock": "තොගය ඉවරයි",
+
+  "success.profile_updated": "පැතිකඩ සාර්ථකව යාවත්කාලීන කරන ලදී!",
+  "error.required": "සියලු අවශ්‍ය ක්ෂේත්‍ර පුරවන්න"
+}
