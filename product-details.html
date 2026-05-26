@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="product.detail.title">Product Detail - Anura Furnitures</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .detail-container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .images {
+      flex: 1;
+      min-width: 340px;
+    }
+    .main-image {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .thumbnails {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .thumbnails img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid #eee;
+      transition: all 0.2s;
+    }
+    .thumbnails img.active,
+    .thumbnails img:hover {
+      border-color: #C8A951;
+    }
+    .info {
+      flex: 1;
+      min-width: 340px;
+    }
+    .price {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #C8A951;
+      margin: 12px 0;
+    }
+    .stock-ok   { color: #27ae60; font-weight: 600; }
+    .stock-low  { color: #e67e22; font-weight: 600; }
+    .stock-none { color: #c0392b; font-weight: 600; }
+    .specs {
+      margin: 28px 0;
+      line-height: 1.7;
+    }
+    .qty-selector {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 28px;
+    }
+    .qty-btn {
+      width: 40px;
+      height: 40px;
+      background: #f1f1f1;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1.3rem;
+      cursor: pointer;
+    }
+    .qty-btn:hover { background: #e0e0e0; }
+    #qty {
+      width: 70px;
+      text-align: center;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1.1rem;
+    }
+    .add-btn {
+      padding: 14px 36px;
+      background: #5D4037;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .add-btn:hover { background: #C8A951; color: #5D4037; }
+    .add-btn:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #27ae60;
+      color: white;
+      padding: 14px 28px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 2000;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.4s;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    @media (max-width: 768px) {
+      .detail-container { gap: 24px; padding: 0 15px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Your existing navbar sections -->
+<div class="top-navbar">...</div>
+<div class="second-navbar">...</div>
+<div class="utility-bar">...</div>
+
+<div class="detail-container">
+  <div class="images" id="imagesSection">
+    <div style="text-align:center; padding:60px 0; color:#777;">Loading product...</div>
+  </div>
+
+  <div class="info">
+    <h1 id="name"></h1>
+    <div class="price" id="price"></div>
+    <div id="stockStatus"></div>
+
+    <div class="specs">
+      <p><strong data-i18n="product.material">Material:</strong> <span id="material"></span></p>
+      <p><strong data-i18n="product.color">Color:</strong> <span id="color"></span></p>
+      <p><strong data-i18n="product.dimensions">Dimensions:</strong> <span id="dimensions"></span></p>
+      <p><strong data-i18n="product.weight">Weight:</strong> <span id="weight"></span></p>
+    </div>
+
+    <div class="qty-selector">
+      <button class="qty-btn" onclick="changeQty(-1)">−</button>
+      <input type="number" id="qty" value="1" min="1" max="999">
+      <button class="qty-btn" onclick="changeQty(1)">+</button>
+    </div>
+
+    <button id="addToCartBtn" class="add-btn" onclick="addToCart()" disabled>
+      <span data-i18n="cart.add">Add to Cart</span>
+    </button>
+
+    <h3 style="margin:40px 0 12px;" data-i18n="product.description">Description</h3>
+    <p id="description"></p>
+
+    <!-- Average Rating -->
+    <div class="average-rating" id="averageRating"></div>
+
+    <h3 style="margin:40px 0 15px;" data-i18n="product.reviews">Customer Reviews</h3>
+    <div id="reviews"></div>
+
+    <!-- Improved Review Form with Clickable Stars -->
+    <div id="reviewForm" style="display:none; margin-top:40px; padding:25px; background:#f9f5eb; border-radius:12px;">
+      <h4 data-i18n="review.write">Write a Review</h4>
+
+      <!-- Interactive Star Rating -->
+      <div style="margin:15px 0 20px;">
+        <label style="display:block; margin-bottom:8px; font-weight:600;">Your Rating:</label>
+        <div id="reviewStars" class="stars"></div>
+      </div>
+
+      <textarea id="comment" placeholder="Share your experience with this product..." rows="4"
+                style="width:100%; padding:14px; border-radius:8px; border:1px solid #ddd; resize:vertical;"></textarea>
+
+      <button onclick="submitReview()"
+              style="margin-top:15px; background:#e67e22; color:white; padding:12px 28px; border:none; border-radius:8px; font-weight:600; font-size:1.05rem;">
+        <span data-i18n="review.submit">Submit Review</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/main.js"></script>
+<script>
+  const productId = new URLSearchParams(window.location.search).get('id');
+  let currentStock = 0;
+  let selectedRating = 0;   // For new review
+
+  function showToast(message, duration = 2800) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), duration);
+  }
+
+  // Interactive Star Rating for Review Form
+  function renderReviewStars() {
+    const container = document.getElementById('reviewStars');
+    if (!container) return;
+    container.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const star = document.createElement('span');
+      star.className = `stars star`;
+      star.textContent = '★';
+      star.dataset.value = i;
+
+      star.addEventListener('mouseover', () => highlightStars(i));
+      star.addEventListener('mouseout', () => highlightStars(selectedRating));
+      star.addEventListener('click', () => {
+        selectedRating = i;
+        highlightStars(i);
+      });
+
+      container.appendChild(star);
+    }
+  }
+
+  function highlightStars(count) {
+    const stars = document.querySelectorAll('#reviewStars .star');
+    stars.forEach(star => {
+      star.classList.toggle('filled', parseInt(star.dataset.value) <= count);
+    });
+  }
+
+  function changeQty(delta) {
+    const input = document.getElementById('qty');
+    let val = parseInt(input.value) || 1;
+    val = Math.max(1, Math.min(999, val + delta));
+    input.value = val;
+  }
+
+  async function loadProductDetail() {
+    if (!productId) {
+      document.getElementById('imagesSection').innerHTML = '<p style="text-align:center; padding:100px 0; color:#c0392b;">Product ID not found</p>';
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/products/${productId}`);
+      if (!res.ok) throw new Error('Product not found');
+      const p = await res.json();
+
+      currentStock = p.stock || 0;
+
+      // Images
+      const imagesSection = document.getElementById('imagesSection');
+      let imgHtml = `<img id="mainImage" src="${p.imageUrls?.[0] || '/images/placeholder.jpg'}" class="main-image" alt="${p.name}">`;
+
+      if (p.imageUrls?.length > 1) {
+        imgHtml += `<div class="thumbnails">`;
+        p.imageUrls.forEach((url, i) => {
+          const active = i === 0 ? ' active' : '';
+          imgHtml += `<img src="${url}" class="${active}" onclick="changeImage('${url}', this)" alt="">`;
+        });
+        imgHtml += `</div>`;
+      }
+      imagesSection.innerHTML = imgHtml;
+
+      // Basic Info
+      document.getElementById('name').textContent = p.name || 'Unnamed Product';
+      document.getElementById('price').textContent = `Rs. ${Number(p.price || 0).toLocaleString('si-LK')}`;
+      document.getElementById('material').textContent = p.material || '—';
+      document.getElementById('color').textContent = p.color || '—';
+      document.getElementById('dimensions').textContent = p.dimensions || '—';
+      document.getElementById('weight').textContent = p.weight ? `${p.weight} kg` : '—';
+      document.getElementById('description').textContent = p.description || 'No description available.';
+
+      // Stock Status
+      const stockEl = document.getElementById('stockStatus');
+      const addBtn = document.getElementById('addToCartBtn');
+      if (currentStock > 10) {
+        stockEl.innerHTML = `<span class="stock-ok">In Stock (${currentStock} available)</span>`;
+        addBtn.disabled = false;
+      } else if (currentStock > 0) {
+        stockEl.innerHTML = `<span class="stock-low">Low Stock (${currentStock} left)</span>`;
+        addBtn.disabled = false;
+      } else {
+        stockEl.innerHTML = `<span class="stock-none">Out of Stock</span>`;
+        addBtn.disabled = true;
+      }
+
+      // Average Rating (NEW)
+      const avgRating = p.averageRating ? p.averageRating.toFixed(1) : '0.0';
+      document.getElementById('averageRating').innerHTML = `
+                <span>${'★'.repeat(Math.floor(avgRating))}${'☆'.repeat(5 - Math.floor(avgRating))}</span>
+                <span style="margin-left:12px; font-size:1.1rem; color:#555;">${avgRating} (${p.reviews?.length || 0} reviews)</span>
+            `;
+
+      // Reviews
+      const reviewsDiv = document.getElementById('reviews');
+      let revHtml = '';
+      if (p.reviews && p.reviews.length > 0) {
+        p.reviews.forEach(r => {
+          const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+          revHtml += `
+                        <div class="review-card">
+                            <div class="review-header">
+                                <strong>${r.userName || 'Anonymous'}</strong>
+                                <span style="color:#C8A951; font-size:1.4rem;">${stars}</span>
+                            </div>
+                            <small style="color:#777;">${r.createdAt || ''}</small>
+                            <p style="margin-top:10px;">${r.comment || ''}</p>
+                        </div>`;
+        });
+      } else {
+        revHtml = '<p style="color:#777; font-style:italic;">No reviews yet. Be the first to review this product!</p>';
+      }
+      reviewsDiv.innerHTML = revHtml;
+
+      // Show review form if logged in
+      if (currentUser) {
+        document.getElementById('reviewForm').style.display = 'block';
+        renderReviewStars();
+      }
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('imagesSection').innerHTML =
+              '<p style="text-align:center; padding:100px 0; color:#c0392b;">Failed to load product. Please try again.</p>';
+    }
+  }
+
+  function changeImage(url, elem) {
+    document.getElementById('mainImage').src = url;
+    document.querySelectorAll('.thumbnails img').forEach(img => img.classList.remove('active'));
+    if (elem) elem.classList.add('active');
+  }
+
+  async function addToCart() {
+    if (currentStock <= 0) return;
+    const qty = parseInt(document.getElementById('qty').value) || 1;
+
+    try {
+      const res = await fetch('/api/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ productId: parseInt(productId), quantity: qty })
+      });
+
+      if (res.ok) {
+        showToast(`✅ Added ${qty} item${qty > 1 ? 's' : ''} to cart!`);
+        await loadCartCount();
+      } else if (res.status === 401) {
+        showToast('Please login to add to cart');
+        setTimeout(() => window.location.href = '/login.html', 1500);
+      } else {
+        showToast('Failed to add to cart');
+      }
+    } catch (err) {
+      showToast('Network error. Please try again.');
+    }
+  }
+
+  async function submitReview() {
+    if (!currentUser || !selectedRating) {
+      showToast('Please select a rating');
+      return;
+    }
+    const comment = document.getElementById('comment').value.trim();
+    if (!comment) {
+      showToast('Please write a comment');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          productId: parseInt(productId),
+          rating: selectedRating,
+          comment: comment
+        })
+      });
+
+      if (res.ok) {
+        showToast('✅ Thank you for your review!');
+        document.getElementById('comment').value = '';
+        selectedRating = 0;
+        highlightStars(0);
+        await loadProductDetail(); // Refresh to show new review
+      } else {
+        showToast('Failed to submit review');
+      }
+    } catch (err) {
+      showToast('Network error');
+    }
+  }
+
+  // Page Load
+  window.onload = async () => {
+    await applyLanguage();
+    await checkAuth();
+    await loadProductDetail();
+  };
+
+  // Make functions available globally
+  window.changeImage = changeImage;
+  window.changeQty = changeQty;
+  window.addToCart = addToCart;
+  window.submitReview = submitReview;
+</script>
+</body>
+</html>
