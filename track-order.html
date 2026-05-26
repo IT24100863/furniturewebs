@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Your Delivery - Anura Furnitures</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .track-container { max-width: 800px; margin: 40px auto; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .track-header { background: #5D4037; color: white; padding: 30px; text-align: center; }
+        .search-bar { width: 100%; padding: 18px 24px; font-size: 1.2rem; border: 3px solid #C8A951; border-radius: 50px; text-align: center; }
+        .timeline { display: flex; justify-content: space-between; padding: 40px 60px; position: relative; }
+        .timeline::before { content: ''; position: absolute; top: 55px; left: 80px; right: 80px; height: 6px; background: #ddd; z-index: 1; }
+        .step { text-align: center; position: relative; z-index: 2; }
+        .step-icon { width: 80px; height: 80px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 12px; }
+        .step.active .step-icon { background: #e67e22; color: white; transform: scale(1.1); }
+        .step-label { font-weight: 600; }
+        .status-text { font-size: 1.4rem; margin: 30px 0; text-align: center; color: #5D4037; }
+    </style>
+</head>
+<body>
+
+<div class="track-container">
+    <div class="track-header">
+        <h1>🚚 Track Your Delivery</h1>
+        <p>Enter the tracking code sent to your email</p>
+    </div>
+
+    <div style="padding:40px 60px;">
+        <input type="text" id="trackingCode" class="search-bar" placeholder="ANURA-DEL-XXXXXXXX" maxlength="20">
+        <button onclick="searchTracking()" style="width:100%; margin-top:20px; padding:16px; background:#e67e22; color:white; font-size:1.2rem; border:none; border-radius:50px;">
+            Track My Order
+        </button>
+
+        <div id="result" style="display:none; margin-top:40px;"></div>
+    </div>
+</div>
+
+<script src="/js/main.js"></script>
+<script>
+    async function searchTracking() {
+        const code = document.getElementById('trackingCode').value.trim().toUpperCase();
+        const resultDiv = document.getElementById('result');
+
+        if (!code) {
+            alert("Please enter the tracking code");
+            return;
+        }
+
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `<p style="text-align:center; color:#5D4037;">🔍 Searching for tracking code <strong>${code}</strong>...</p>`;
+
+        try {
+            // ✅ FIXED: Correct endpoint
+            const res = await fetch(`/api/orders/track?code=${code}`, {
+                credentials: 'include'
+            });
+
+            if (!res.ok) throw new Error("Invalid tracking code");
+
+            const d = await res.json();
+
+            // Better status mapping for timeline
+            const isPending = d.status === 'PENDING';
+            const isShipped = d.status === 'SHIPPED';
+            const isInTransit = d.status === 'IN_TRANSIT';
+            const isDelivered = d.status === 'DELIVERED';
+            const isCancelled = d.status === 'CANCELLED';
+
+            let html = `
+            <div style="text-align:center; margin:20px 0;">
+                <h2 style="color:#5D4037;">Order #${d.orderId}</h2>
+                <p style="font-size:1.3rem; font-weight:600; color:#e67e22;">
+                    ${isCancelled ? '❌ CANCELLED' : d.status}
+                </p>
+                <p><strong>Tracking Code:</strong> ${d.trackingCode}</p>
+                ${d.deliveryPartner ? `<p><strong>Delivery Partner:</strong> ${d.deliveryPartner}</p>` : ''}
+            </div>
+
+            <div class="timeline">
+                <div class="step ${isPending || isShipped || isInTransit || isDelivered ? 'active' : ''}">
+                    <div class="step-icon">📦</div>
+                    <div class="step-label">Confirmed</div>
+                </div>
+                <div class="step ${isShipped || isInTransit || isDelivered ? 'active' : ''}">
+                    <div class="step-icon">🚚</div>
+                    <div class="step-label">Shipped</div>
+                </div>
+                <div class="step ${isInTransit || isDelivered ? 'active' : ''}">
+                    <div class="step-icon">📍</div>
+                    <div class="step-label">On the Way</div>
+                </div>
+                <div class="step ${isDelivered ? 'active' : ''}">
+                    <div class="step-icon">🏠</div>
+                    <div class="step-label">Delivered</div>
+                </div>
+            </div>
+
+            ${isCancelled ?
+                `<p style="text-align:center; color:#e74c3c; font-size:1.2rem; margin-top:30px;">
+                    ❌ This delivery has been cancelled.
+                </p>` : ''}
+
+            <p style="text-align:center; font-size:1.1rem; margin-top:25px;">
+                ${d.deliveryDate ?
+                `Estimated delivery: <strong>${new Date(d.deliveryDate).toLocaleDateString('en-GB')}</strong>` :
+                'Delivery date not set yet'}
+            </p>
+
+            <p style="text-align:center; margin-top:20px; color:#777;">
+                ${d.addressSummary || ''}
+            </p>
+            `;
+
+            resultDiv.innerHTML = html;
+
+        } catch (e) {
+            resultDiv.innerHTML = `
+            <p style="color:#e74c3c; text-align:center; font-size:1.4rem; margin-top:30px;">
+                ❌ Invalid tracking code or delivery not found.<br>
+                <small>Please check the code sent to your email.</small>
+            </p>`;
+        }
+    }
+
+    // Allow pressing Enter in the input box
+    document.getElementById('trackingCode').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') searchTracking();
+    });
+</script>
+</body>
+</html>
